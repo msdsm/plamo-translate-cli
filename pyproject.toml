@@ -39,6 +39,14 @@ dependencies = [
     "mcp[cli]>=1.9.2",
     "numba>=0.60.0",
     "mlx-lm>=0.25.2 ; sys_platform == 'darwin'",
+    "pypdf2>=3.0.1",
+    "reportlab>=4.4.2",
+]
+
+[project.optional-dependencies]
+pdf = [
+    "PyPDF2>=3.0.0",
+    "reportlab>=4.0.0",
 ]
 
 [tool.uv]

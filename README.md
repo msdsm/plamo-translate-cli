@@ -11,6 +11,12 @@ A command-line interface for translation using the plamo-2-translate model with 
 
 ## Installation
 
+PDF翻訳機能を使用する場合は、追加のパッケージが必要です:
+
+```sh
+pip install plamo-translate[pdf]
+```
+
 ### For macOS
 
 #### Python>=3.13
@@ -196,6 +202,8 @@ $ plamo-translate server --precision 8bit
 - --from TEXT Input language for translation (default: English)
 - --to TEXT Output language for translation (default: Japanese)
 - --precision Model weight precision to use. You can select from: [4bit, 8bit, bf16] (default: 4bit)
+- --pdf-input TEXT Input PDF file path to translate
+- --pdf-output TEXT Output PDF file path for translated content
 
 ## Configuration
 
@@ -213,4 +221,69 @@ You can configure the following parameters using environment variables:
 
 ```sh
 bash scripts/deploy.sh
+```
+
+### PDF翻訳機能
+
+英語論文PDFを日本語論文PDFに変換できます:
+
+```sh
+# PDF翻訳（英語→日本語）
+$ plamo-translate --pdf-input research_paper.pdf --pdf-output research_paper_jp.pdf
+
+# PDF翻訳（言語を指定）
+$ plamo-translate --pdf-input paper.pdf --pdf-output paper_ja.pdf --from English --to Japanese
+```
+
+**注意事項:**
+- PDF翻訳機能を使用するには、`pip install plamo-translate[pdf]`でPDF処理用のパッケージをインストールする必要があります
+- 画像ベースのPDFやスキャンされたPDFには対応していません。テキストベースのPDFのみサポートします
+- 元のPDFのレイアウトやフォーマットは保持されません。翻訳されたテキストが新しいPDFとして生成されます
+
+### Using from MCP Client
+
+The `plamo-translate server` command starts an MCP (Model Context Protocol) server. This allows `plamo-translate` to be used as a tool in other applications that support MCP, such as Claude Desktop.
+
+Here, we introduce how to use `plamo-translate` with Claude Desktop, which is a popular MCP client.
+
+1.  Start the `plamo-translate` server:
+    ```sh
+    plamo-translate server
+    ```
+2.  In a new terminal, run the following command to display the MCP configuration for Claude Desktop:
+    ```sh
+    plamo-translate show-claude-config
+    ```
+    and you will see the configuration in JSON format as follows:
+    ```json
+    {
+      "mcpServers": {
+        "plamo-translate": {
+          "command": "/Users/shunta/.linuxbrew/bin/npx",
+          "args": [
+            "-y",
+            "mcp-remote",
+            "http://localhost:8000/mcp",
+            "--allow-http",
+            "--transport",
+            "http-only"
+          ],
+          "env": {
+            "PATH": "[THE SAME STRING AS YOUR CURRENT PATH ENVIRONMENT VARIABLE]",
+          }
+        }
+      }
+    }
+    ```
+3.  Copy the outputted configuration.
+4.  Paste this configuration into your Claude Desktop's MCP configuration file (on macOS, this is typically located at `~/Library/Application Support/Claude/claude_desktop_config.json`).
+
+Once configured, you can use `plamo-translate` directly from Claude Desktop.
+
+#### Select precision of the model weight
+
+You can specify the precision of the model weight by giving a `--precision` option.
+
+```sh
+$ plamo-translate server --precision 8bit
 ```

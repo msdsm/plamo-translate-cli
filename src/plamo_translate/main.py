@@ -74,6 +74,29 @@ async def print_translation(
 
 
 def run_translate(args: argparse.Namespace) -> None:
+    # PDF翻訳機能をチェック
+    if args.pdf_input or args.pdf_output:
+        if not args.pdf_input or not args.pdf_output:
+            print("エラー: PDF翻訳には --pdf-input と --pdf-output の両方が必要です。")
+            sys.exit(1)
+        
+        # PDF翻訳を実行
+        from plamo_translate.pdf_translator import translate_pdf_file
+        
+        from_lang = args.from_lang if args.from_lang != "English|Japanese" else "English"
+        to_lang = args.to if args.to != "" else "Japanese"
+        
+        try:
+            translate_pdf_file(args.pdf_input, args.pdf_output, from_lang, to_lang)
+            return
+        except ImportError as e:
+            print(f"PDF機能を使用するには追加のパッケージが必要です:")
+            print("pip install PyPDF2 reportlab")
+            sys.exit(1)
+        except Exception as e:
+            print(f"PDF翻訳でエラーが発生しました: {e}")
+            sys.exit(1)
+    
     from_lang = args.from_lang
     if from_lang != "":
         from_lang = f" lang={from_lang}"
@@ -226,6 +249,18 @@ def main() -> None:
         "-i",
         action="store_true",
         help="Enable interactive mode for translation",
+    )
+    global_parser.add_argument(
+        "--pdf-input",
+        type=str,
+        help="Input PDF file path to translate",
+        default=None,
+    )
+    global_parser.add_argument(
+        "--pdf-output",
+        type=str,
+        help="Output PDF file path for translated content",
+        default=None,
     )
 
     # Create the parser for the "server" command
